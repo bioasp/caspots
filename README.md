@@ -73,6 +73,7 @@ and a trace with the estimated MSE: in such a case, the displayed MSE is the
 actual minimal MSE of the PKN with respect to the dataset.
 
 The option --control-nodes allows the user to specify nodes that Caspots doesn't have to explain, they'll still be used to infer networks.
+Important note: as of now the control nodes must be specified at time point 0 in the MIDAS file.
 
 #### Authors
 - Max Ostrowski
