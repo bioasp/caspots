@@ -3,7 +3,7 @@ convert(-1,0).
 convert(1,1).
 supp(E,T,L,V2) :- clamped(E,L,V1), convert(V1,V2), nextTP(E,T,_).
 supp(E,T,S,V) :- control(S), measured(E,T,S,V), nextTP(E,T,_).
-supp(E,T,S,Vprec) :- control(S), measured(E,Tprec,S,Vprec),nextTP(E,Tprec,T).
+supp(E,T,S,Vnext) :- control(S), nextTP(E,T,Tnext), measured(E,Tnext,S,Vnext).
 
 ex_supp(E,T,clause,X,1) :- supp(E,T,L,C) : clause(X,L,V), convert(V,C); timepoint(E,T), clause(X).
 ex_supp(E,T,clause,X,0) :- supp(E,T,L,0), clause(X,L,1).
