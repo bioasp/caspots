@@ -7,6 +7,7 @@
 - gringo python module (shipped with gringo from http://potassco.sourceforge.net)
   On Ubuntu, install the gringo package.
 - NuSMV >= 2.5 - http://nusmv.fbk.eu/NuSMV/download/getting-v2.html
+- networkx < 2.0
 
 ## Installation
 
