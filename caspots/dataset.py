@@ -139,7 +139,7 @@ class Dataset:
                 if np.isnan(fvalue):
                     continue
                 var = var[3:]
-                time = int(row.get("DA:%s" % var))
+                time = int(row.get("DA:%s" % var, row.get("DA:ALL")))
                 dvalue = self.discretize(fvalue)
                 bvalue = self.binarize(dvalue)
                 exp.add_obs(time, var, bvalue, dvalue)
