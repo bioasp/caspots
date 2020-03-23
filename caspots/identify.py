@@ -260,6 +260,7 @@ class ASPSolver:
             control.assign_external(gringo.Fun("tolerance"),True)
         else:
             weight = force_weight
+            control.assign_external(gringo.Fun("tolerance"),True)
             dbg("# force weight = %d" % weight)
 
         self.setup_weight(control, weight)
