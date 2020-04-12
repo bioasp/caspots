@@ -27,3 +27,4 @@ supp(E,T,L,X) :- ex_supp(E,T,L,X).
 :- guessed(E,T2,S,V), not supp(E,T1,S,V), nextTP(E,T1,T2).
 :- guessed(E,T2,L,Y), opposite(X,Y), ex_supp(E,T1,L,X), not ex_supp(E,T1,L,Y), nextTP(E,T1,T2).
 
+control(_dummy).

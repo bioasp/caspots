@@ -1,7 +1,7 @@
 
 import itertools as it
 
-import gringo
+import clingo
 
 import pandas as pd
 
@@ -25,17 +25,17 @@ def domain_of_networks(networks):
     domain = ["1{%s}1." % ("; ".join(["model(%d)" % i for i in range(len(networks))]))]
 
     for i,network in enumerate(networks):
-        m = gringo.Fun("model", [i])
+        m = clingo.Function("model", [i])
         for v,formula in network.formulas_iter():
             variable = hg.nodes[hg.nodes == v].index[0]
-            f = gringo.Fun("formula", [v, variable])
+            f = clingo.Function("formula", [v, variable])
             domain.append("%s :- model(%d)." % (f,i))
             for clause in formula:
                 clause_idx = hg.clauses_idx[clause]
-                d = gringo.Fun("dnf",[variable, clause_idx])
+                d = clingo.Function("dnf",[variable, clause_idx])
                 domain.append("%s :- %s." % (d,m))
                 for variable, sign in clause:
-                    c = gringo.Fun("clause", [clause_idx, variable, sign])
+                    c = clingo.Function("clause", [clause_idx, variable, sign])
                     domain.append("%s :- %s." % (c,m))
 
     return "%s\n" % "\n".join(domain)

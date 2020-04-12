@@ -1,5 +1,5 @@
 
-import gringo
+import clingo
 
 import pandas as pd
 
@@ -17,7 +17,7 @@ class Fixpoint(object):
 
     def to_funset(self):
         fs = funset()
-        fs.update([gringo.Fun("fp", [self.id, n, v]) \
+        fs.update([clingo.Function("fp", [self.id, n, v]) \
                     for (n,v) in self.state.items()])
         return fs
 

@@ -4,7 +4,7 @@ import sys
 import pandas as pd
 import numpy as np
 
-import gringo
+import clingo
 
 from caspo.core.setup import Setup
 from caspo.core.literal import Literal
@@ -73,7 +73,8 @@ class Dataset:
         df = df.reset_index(drop=True)
 
         def is_stimulus(name):
-            if name.lower() == 'tr:cell:cellline':
+            if name.lower().startswith("tr:") and \
+                    name.lower().endswith(":cellline"):
                 return False
             return name.startswith('TR') and not name.endswith('i')
         def is_inhibitor(name):
@@ -118,7 +119,9 @@ class Dataset:
             clamps = set()
             cellline = None
             for var, sign in row.filter(regex='^TR').items():
-                if var.lower() == 'tr:cell:cellline':
+                parts = var.lower().split(":")
+                if len(parts) == 3 and parts[0] == "tr" \
+                        and parts[2] == "cellline":
                     cellline = int(sign)
                     continue
                 var = var[3:]
@@ -163,11 +166,11 @@ class Dataset:
             clampings.append(Clamping(literals))
             for time, obs in exp.dobs.items():
                 for var, dval in obs.items():
-                    fs.add(gringo.Fun('obs', [i, time, var, dval]))
+                    fs.add(clingo.Function('obs', [i, time, var, dval]))
         clampings = ClampingList(clampings)
         fs.update(clampings.to_funset("exp"))
-        fs.update([gringo.Fun('control', [n]) for n in self.control_nodes])
-        fs.add(gringo.Fun('dfactor', [self.dfactor]))
+        fs.update([clingo.Function('control', [n]) for n in self.control_nodes])
+        fs.add(clingo.Function('dfactor', [self.dfactor]))
         return fs
 
     def __str__(self):

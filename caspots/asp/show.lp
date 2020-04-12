@@ -1,6 +1,4 @@
 
-
-#program show.
 #show formula/2.
 #show dnf/2.
 #show clause/3.

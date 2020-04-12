@@ -6,7 +6,7 @@ import sys
 import tempfile
 import time
 
-import gringo
+import clingo
 
 from caspo.core import LogicalNetwork
 
@@ -22,11 +22,14 @@ def crunch_data(answer, predicate, factor):
     }
     keys = set()
     for a in answer:
-        p = a.name()
+        p = a.name
         if p in ["obs", predicate]:
-            args = a.args()
-            key = tuple(args[:3])
-            val = args[3]
+            i, time, var, val = a.arguments
+            i = i.number
+            time = time.number
+            var = var.string
+            val = val.number
+            key = (i, time, var)
             if p == "obs":
                 val /= factor
             t = "obs" if p == "obs" else "bin"
@@ -48,13 +51,13 @@ def MSE(cd):
     return math.sqrt(cum/n)
 
 def count_predicate(answer, predicate):
-    return len([a for a in answer if a.name() == predicate])
+    return len([a for a in answer if a.name == predicate])
 
 class ASPSample:
     def __init__(self, opts, model):
         self.opts = opts
-        self.atoms = model.atoms()
-        self.optimization = model.optimization()
+        self.atoms = model.symbols(shown=True)
+        self.optimization = model.cost
 
     def weight(self):
         return self.optimization[0]
@@ -66,7 +69,7 @@ class ASPSample:
         predicates = ["formula", "dnf", "clause"]
         if self.opts.enum_traces:
             predicates += ["guessed"]
-        clauses = [a for a in self.atoms if a.name() in predicates]
+        clauses = [a for a in self.atoms if a.name in predicates]
         if self.opts.family == "all":
             nb_formula = count_predicate(self.atoms, "formula")
             nb_dnf = count_predicate(self.atoms, "dnf")
@@ -86,14 +89,19 @@ class ASPSample:
         return (mse0, mse)
 
     def network(self, hypergraph):
-        tuples = (f.args() for f in self.atoms if f.name() == "dnf")
+        tuples = ([a.number for a in f.arguments] for f in self.atoms
+                    if f.name == "dnf")
         return LogicalNetwork.from_hypertuples(hypergraph, tuples)
 
     def trace(self, dataset):
         # rewrite dataset using guessed predicate
         for a in self.atoms:
-            if a.name() == "guessed":
-                eid, t, node, value = a.args()
+            if a.name == "guessed":
+                eid, t, node, value = a.arguments
+                eid = eid.number
+                t = t.number
+                node = node.string
+                value = value.number
                 if node not in dataset.readout:
                     continue
                 if node in dataset.control_nodes:
@@ -108,7 +116,7 @@ class ASPSample:
 def print_conf(conf, prefix=""):
     for k in conf.keys():
         v = getattr(conf, k)
-        if isinstance(v, gringo.ConfigProxy):
+        if isinstance(v, clingo.ConfigProxy):
             print_conf(v, "%s%s" % (prefix, k))
         else:
             dbg("# conf %s%s = %s" % (prefix, k, v))
@@ -133,7 +141,7 @@ class ASPSolver:
             self.domain.append(aspf("fixpoints.lp"))
 
     def default_control(self, *args):
-        control = gringo.Control(["--conf=trendy", "--stats",
+        control = clingo.Control(["--conf=trendy", "--stats",
                             "--opt-strat=usc"] + list(args))
         for f in self.domain:
             control.load(f)
@@ -143,28 +151,25 @@ class ASPSolver:
         control.add("base", [], self.data)
 
         if self.opts.clingo_parallel_mode:
-            control.conf.solve.parallel_mode = self.opts.clingo_parallel_mode
+            control.configuration.solve.parallel_mode = self.opts.clingo_parallel_mode
 
         return control
 
     def sample(self, control, first, weight=None, minsize=None):
         if first:
-            #control.conf.solve.opt_mode = "opt"
             self.setup_opt(control)
 
-            control.ground([("base", [])])
-
             control.load(aspf("show.lp"))
-            control.ground([("show", [])])
-            control.assign_external(gringo.Fun("tolerance"),False)
+            control.ground([("base", [])])
+            control.assign_external(clingo.Function("tolerance"),False)
 
         else:
             if weight:
                 self.setup_weight(control, weight)
             if minsize:
                 self.setup_card(control, minsize)
-            control.conf.solve.opt_mode = "ignore"
-            control.conf.solve.models = 1
+            control.configuration.solve.opt_mode = "ignore"
+            control.configuration.solve.models = 1
 
         models = []
         res = control.solve(None, lambda model: models.append(ASPSample(self.opts, model)))
@@ -219,17 +224,16 @@ class ASPSolver:
     def solutions(self, on_model, on_model_weight=None, limit=0,
                     force_weight=None):
 
-        control = self.default_control("0")
+        control = self.default_control("0", "--project")
 
         do_subsets = self.opts.family == "subset" \
             or (self.opts.family =="mincard" and self.opts.mincard_tolerance)
         minsize = None
 
         self.setup_opt(control)
-        control.ground([("base", [])])
 
         control.load(aspf("show.lp"))
-        control.ground([("show", [])])
+        control.ground([("base", [])])
 
         start = time.time()
 
@@ -237,10 +241,10 @@ class ASPSolver:
             force_weight = 0
 
         if force_weight is None:
-            control.assign_external(gringo.Fun("tolerance"),False)
+            control.assign_external(clingo.Function("tolerance"),False)
             dbg("# start initial solving")
             opt = []
-            res = control.solve(None, lambda model: opt.append(model.optimization()))
+            res = control.solve(on_model=lambda model: opt.append(model.cost))
             dbg("# initial solve took %s" % (time.time()-start))
 
             optimizations = opt.pop()
@@ -255,27 +259,26 @@ class ASPSolver:
                     on_model_weight(sample)
                 return
 
-            control.assign_external(gringo.Fun("tolerance"),True)
+            control.assign_external(clingo.Function("tolerance"),True)
         else:
             weight = force_weight
-            control.assign_external(gringo.Fun("tolerance"),True)
+            control.assign_external(clingo.Function("tolerance"),True)
             dbg("# force weight = %d" % weight)
 
         self.setup_weight(control, weight)
         self.setup_card(control, minsize)
 
-        control.conf.solve.opt_mode = "ignore"
-        control.conf.solve.project = 1 # ????
-        control.conf.solve.models = limit # ????
-        #print control.conf.solver[0].keys()
+        control.configuration.solve.opt_mode = "ignore"
+        control.configuration.solve.models = limit
+        control.configuration.solve.project = 1
         if do_subsets:
-            control.conf.solve.enum_mode = "domRec"
-            control.conf.solver[0].heuristic = "Domain"
-            control.conf.solver[0].dom_mod = "5,16"
+            control.configuration.solve.enum_mode = "domRec"
+            control.configuration.solver[0].heuristic = "Domain"
+            control.configuration.solver[0].dom_mod = "5,16"
 
         start = time.time()
         dbg("# begin enumeration")
-        res = control.solve(None, on_model)
+        res = control.solve(on_model=on_model)
         dbg("# enumeration took %s" % (time.time()-start))
 
 

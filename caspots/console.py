@@ -199,7 +199,8 @@ def do_identify(args):
                 networks.append(network)
 
         def on_model(model):
-            tuples = (f.args() for f in model.atoms() if f.name() == "dnf")
+            tuples = ([a.number for a in f.arguments] for f in model.symbols(shown=True)
+                            if f.name == "dnf")
             network = LogicalNetwork.from_hypertuples(ctx.hypergraph, tuples)
             tp = args.true_positives and is_true_positive(args, ctx.dataset, network)
             update(network, tp)
