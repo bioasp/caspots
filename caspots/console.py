@@ -1,12 +1,8 @@
 
-from __future__ import print_function
-
 from functools import reduce
 import os
 import sys
 import tempfile
-
-import gringo
 
 from caspo.core import Graph, HyperGraph, LogicalNetwork, LogicalNetworkList
 

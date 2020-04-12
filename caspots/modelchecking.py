@@ -69,7 +69,8 @@ def make_smv(dataset, network, destfile, update=U_GENERAL):
 
     smv.write("\nDEFINE\n")
 
-    def nusmv_of_literal((var, sign)):
+    def nusmv_of_literal(vs):
+        (var, sign) = vs
         return "%sn_%s" % ("!" if sign <= 0 else "", var)
 
     def nusmv_of_clause(clause):

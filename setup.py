@@ -9,8 +9,6 @@ setup(name="caspots",
     long_description = "",
     install_requires = [
         "caspo>=3",
-        "networkx<2",
-        #"pydot<=1.2",
     ],
     packages = find_packages(),
     include_package_data = True,

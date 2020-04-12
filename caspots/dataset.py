@@ -117,7 +117,7 @@ class Dataset:
         for i, row in df.iterrows():
             clamps = set()
             cellline = None
-            for var, sign in row.filter(regex='^TR').iteritems():
+            for var, sign in row.filter(regex='^TR').items():
                 if var.lower() == 'tr:cell:cellline':
                     cellline = int(sign)
                     continue
@@ -135,7 +135,7 @@ class Dataset:
             time = times[0]
             exp = exp_of_clamps(cellline, clamps, time)
 
-            for var, fvalue in row.filter(regex='^DV').iteritems():
+            for var, fvalue in row.filter(regex='^DV').items():
                 if np.isnan(fvalue):
                     continue
                 var = var[3:]

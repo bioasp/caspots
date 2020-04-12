@@ -2,23 +2,22 @@
 
 ## Requirements
 
-- python 2.7
-- caspo (pip install caspo)
-- gringo python module (shipped with gringo from http://potassco.sourceforge.net)
-  On Ubuntu, install the gringo package.
+- python
+- caspo >= 4
+- clingo python module (https://github.com/potassco/clingo)
+  On Ubuntu, install the clingo package.
 - NuSMV >= 2.5 - http://nusmv.fbk.eu/NuSMV/download/getting-v2.html
-- networkx < 2.0
 
 ## Installation
 
-	pip install https://github.com/pauleve/caspots/archive/master.zip
+	pip install https://github.com/bioasp/caspots/archive/master.zip
 
-This will install necessary dependencies, except the gringo python module and
+This will install necessary dependencies, except the clingo python module and
 NuSMV.
 
 A docker image is also available
 
-	docker pull pauleve/caspots
+	docker pull bioasp/caspots
 
 ### Docker usage
 
@@ -26,12 +25,12 @@ The entry point of the docker image is the program `caspots`.
 Hence you can run a image directly with `docker run`.
 You can create an alias to use `caspots` command:
 
-	alias caspots='docker run --rm --volume "$PWD":/wd --workdir /wd pauleve/caspots'
+	alias caspots='docker run --rm --volume "$PWD":/wd --workdir /wd bioasp/caspots'
 
 If you have multiple `caspots` command to run in the same directoy, it is
 recommended to first create a container and then execute caspots commands in it.
 
-	alias start-caspots='docker create --name caspots -it --volume "$PWD":/wd --workdir /wd --entrypoint=/bin/bash pauleve/caspots && docker start caspots'
+	alias start-caspots='docker create --name caspots -it --volume "$PWD":/wd --workdir /wd --entrypoint=/bin/bash bioasp/caspots && docker start caspots'
 	alias docker-caspots='docker exec caspots caspots'
 	alias stop-caspots='docker stop caspots && docker rm caspots'
 
