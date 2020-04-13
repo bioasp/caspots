@@ -1,5 +1,7 @@
 # Caspots - Boolean network inference from time series data with perturbations
 
+[![Gitter](https://badges.gitter.im/bioasp/community.svg)](https://gitter.im/bioasp/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+
 ## Requirements
 
 - python
